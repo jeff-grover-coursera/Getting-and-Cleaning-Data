@@ -1,0 +1,61 @@
+---
+title: "Codebook"
+author: "J Grover"
+date: "September 3, 2016"
+output: html_document
+---
+
+This document details the variables in the datasets produced by the R script in this repository. The run_analysis.R script produces two datasets: *data*, which contains the merged testing and training datasets, and *data.averages*, which produces the average of each measurement for each subject-activity pair.
+
+## The *data* table
+
+The *data* table contains 89 variables.
+
+* The first 86 variables are the measurement variables provided by the researchers at UCI. The excerpt below from the features_info.txt document provided by UCI provides some detail:
+      + The features selected for this database come from the accelerometer and gyroscope 3-axial raw signals tAcc-XYZ and tGyro-XYZ. These time domain signals (prefix 't' to denote time) were captured at a constant rate of 50 Hz. Then they were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise. Similarly, the acceleration signal was then separated into body and gravity acceleration signals (tBodyAcc-XYZ and tGravityAcc-XYZ) using another low pass Butterworth filter with a corner frequency of 0.3 Hz. 
+
+      + Subsequently, the body linear acceleration and angular velocity were derived in time to obtain Jerk signals (tBodyAccJerk-XYZ and tBodyGyroJerk-XYZ). Also the magnitude of these three-dimensional signals were calculated using the Euclidean norm (tBodyAccMag, tGravityAccMag, tBodyAccJerkMag, tBodyGyroMag, tBodyGyroJerkMag). 
+
+      + Finally a Fast Fourier Transform (FFT) was applied to some of these signals producing fBodyAcc-XYZ, fBodyAccJerk-XYZ, fBodyGyro-XYZ, fBodyAccJerkMag, fBodyGyroMag, fBodyGyroJerkMag. (Note the 'f' to indicate frequency domain signals). 
+
+      + These signals were used to estimate variables of the feature vector for each pattern:  
+      + '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
+
+      + tBodyAcc-XYZ
+      + tGravityAcc-XYZ
+      + tBodyAccJerk-XYZ
+      + tBodyGyro-XYZ
+      + tBodyGyroJerk-XYZ
+      + tBodyAccMag
+      + tGravityAccMag
+      + tBodyAccJerkMag
+      + tBodyGyroMag
+      + tBodyGyroJerkMag
+      + fBodyAcc-XYZ
+      + fBodyAccJerk-XYZ
+      + fBodyGyro-XYZ
+      + fBodyAccMag
+      + fBodyAccJerkMag
+      + fBodyGyroMag
+      + fBodyGyroJerkMag
+
+      + The set of variables that were estimated from these signals are: 
+
+      + mean(): Mean value
+      + std(): Standard deviation
+
+* The _subject_ variable shows which subject was measured. There were 30 subjects, labeled 1-30.
+
+* The _activity_ variable shows what activity each subject was doing while they were measured. The six activities are
+      + walking,
+      + walking upstairs,
+      + walking downstairs,
+      + sitting,
+      + standing,
+      + laying.
+
+* The _sample_ variable shows which observations were used in the testing dataset, and which were used in the training dataset.
+
+## The _data.averages_ table
+
+This table averages each of the 86 measurement variables for each subject-activity group. This means that all of the measurements taken while subject 5 was walking upstairs were grouped together and averaged. This results in a table with 88 variables (the _sample_ variable becomes meaningless in this case, so it is dropped), and 180 rows (30 subjects \* 6 activities = 180 subject-activity groups). The variables are the same as the *data* table.

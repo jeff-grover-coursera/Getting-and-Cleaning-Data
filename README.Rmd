@@ -1,0 +1,121 @@
+---
+title: "README"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This document provides a line-by-line explanation of the R script used to tidy up the data for the Getting and Cleaning Data course project.
+
+**Note:** To run this code, the data provided by UCI must remain within the directory structure it is downloaded in. The measurements must stay in the /test/ and /train/ folders, with the 
+
+### Preamble
+
+```{r eval=FALSE}
+library(dplyr)
+wd <- "/Users/username/Dropbox/Coursera/3 Getting and Cleaning Data/Project/UCI HAR Dataset"
+setwd(wd)
+```
+This section loads the required packages and sets the working directory.
+
+### Importing the data
+
+This section imports the measurement data and the labels provided in the UCI HAR files.
+
+```{r eval=FALSE}
+## Import measurements
+test <- read.table(paste0(wd,"/test/X_test.txt"))
+train <- read.table(paste0(wd,"/train/X_train.txt"))
+```
+
+This code imports the measurement values for the test dataset and the training dataset.
+
+```{r eval=FALSE}
+## Import measurement variable labels
+## Important to do this before adding more variables
+varnames <- read.table(paste0(wd,"/features.txt"))[2]
+names(test) <- as.character(varnames$V2)
+names(train) <- as.character(varnames$V2)
+```
+
+This code imports the variables names stored in the 'features.txt' file. The read.table function imports the variable names as a data frame, with the actual names being in the second column, so only the second column is imported. The variable names are then used to replace the column names of the test and training datasets. It is important to perform this step before adding more variables, because otherwise there would be more variables than there are variable names in the text file.
+
+```{r eval=FALSE}
+## Import subject ID and activity ID variables and add them to the respective datasets.
+## read.table() imports tables as data frames, so extract the values as a factor variable.
+test$subject <- read.table(paste0(wd,"/test/subject_test.txt"), colClasses="factor")$V1
+test$activity <- read.table(paste0(wd,"/test/y_test.txt"), colClasses="factor")$V1
+train$subject <- read.table(paste0(wd,"/train/subject_train.txt"), colClasses="factor")$V1
+train$activity <- read.table(paste0(wd,"/train/y_train.txt"), colClasses="factor")$V1
+```
+
+This code imports the subject and activity variables and adds them the test dataset and the training dataset.
+
+### Cleaning and merging the data
+
+This section cleans and merges the data.
+
+```{r eval=FALSE}
+## Replace activity ID numbers with descriptive labels
+activity.labels <- read.table(paste0(wd,"/activity_labels.txt"))
+levels(test$activity) <- activity.labels$V2
+levels(train$activity) <- activity.labels$V2
+```
+
+This code imports the provided activity labels. The activity variable imported above is coded as numbers. Here, we replace the numbers with the activity names: sitting, standing, walking upstairs, etc.
+
+```{r eval=FALSE}
+## Some value variable names are duplicates. This will prevent us from merging the datasets properly.
+## Find the duplicates:
+varnames.duplicates <- data.frame(table(varnames))
+varnames.duplicates[varnames.duplicates$Freq>1,]
+## All the duplicate variables have "-bandsEnergy() in the name.
+## These aren't means or st devs, so we can drop them in this project.
+## Keep only variables that do not have duplicate names:
+test <- test[, !duplicated(names(test))]
+train <- train[, !duplicated(names(train))]
+```
+
+Some of the variable names are duplicates. The test and training datasets cannot be properly merged with duplicate variable names.
+
+So, this code creates a table of the variable names and how frequently they are used, then displays which variable names are duplicated. None of the duplicate variables are means or standard deviations, which is what we will be using later on, so we drop them. 
+
+```{r eval=FALSE}
+## Add a variable to keep track of test data and training data
+test$sample <- as.factor(rep("test", dim(test)[1]))
+train$sample <- as.factor(rep("train", dim(train)[1]))
+```
+
+This code creates a sample ID variable: the test dataset has the value "test", and the training dataset has the value "train", in case we need to distinguish between them in future analyses.
+
+```{r eval=FALSE}
+## Keep only variables that have "mean" or "std" in the name, as well as the ID variables we created above:
+test <- test[,grepl("[Mm]ean|std|subject|activity|sample", names(test))]
+train <- train[,grepl("[Mm]ean|std|subject|activity|sample", names(train))]
+```
+
+This code keeps only the variables that contain means and standard deviations, as well as the subject ID, activity ID, and sample ID variables.
+
+```{r eval=FALSE}
+## Append test and train sets to form one dataset
+data <- rbind(test, train)
+```
+
+Finally, this code merges the training dataset to the test dataset.
+
+### Summarizing the data
+
+```{r eval=FALSE}
+## Split the dataset by subject and activity
+data.averages <- data %>% group_by(subject, activity)
+## Calculate the mean of each measurement variable for each subject doing each activity
+data.averages <- data.averages %>% summarize_all(mean) %>% select(-sample)
+```
+
+This code splits up the data by subject and activity (so every measurement gathered on subject 5 while sitting is grouped together, every measurement gathered on subject 5 while standing is grouped together... for every subject-activity combination). Then, each measurement variable is averaged by subject-activity group. The *sample* variable becomes meaningless so it is dropped.
+
+### Outputs
+
+This script produces two tidy datasets: *data* and *data.averages*. These datasets are tidy because they contain one unique observation per row, one unique variable per column, and each dataset has only one level of observation.
